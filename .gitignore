@@ -1,0 +1,7 @@
+data
+*.zip
+*.ZIP
+*.xpt
+*.XPT
+*.pyc
+.DS_Store

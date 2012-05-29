@@ -1,0 +1,39 @@
+The NHANES (National Health and Nutrition Examination Survey) is where it's at, at least since 1999.
+
+
+
+http://www.cdc.gov/nchs/nhanes/nhanes_questionnaires.htm
+
+Body measures raw data from 2009–2010
+http://www.cdc.gov/nchs/nhanes/nhanes2009-2010/exam09_10.htm
+
+Raw data file documentation:
+http://www.cdc.gov/nchs/nhanes/nhanes2009-2010/BMX_F.htm
+
+xport python library:
+http://pypi.python.org/pypi/xport/0.1.0
+
+
+Sample Python session:
+import xport
+reader = xport.XportReader('BMX_F.xpt')
+row = reader.next()
+
+>>> row
+{'BMXTRI': 16, 'BMILEG': 0, 'BMXHEAD': 0, 'BMXLEG': 41, 'BMIWT': 0, 'BMIWAIST': 0, 'BMXBMI': 32, 'BMXRECUM': 0, 'BMIARMC': 0, 'BMIARML': 0, 'BMIHT': 0, 'BMIRECUM': 0, 'BMITRI': 0, 'BMXARML': 40, 'BMISUB': 0, 'BMIHEAD': 0, 'BMXWT': 87, 'BMXARMC': 36, 'SEQN': 51624, 'BMXWAIST': 100, 'BMXSUB': 24, 'BMXHT': 164, 'BMDSTATS': 1}
+
+BMXBMI = Body Mass Index
+
+From http://www.cdc.gov/nchs/nhanes/nhanes2009-2010/faqs09_10.htm#20
+20. Can I identify what region of the country or what state or county a survey participant resides within?
+
+Geographic identifiers are available but only through the Research Data Center (RDC), in order to protect the confidentiality of our participants. A list of NHANES Geocode variables is available through the RDC website.
+
+This article is about distributions:
+http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1636707/
+
+This site has per-state data for Obese %, but not distributions so far as I can tell:
+http://www.cdc.gov/obesity/data/adult.html
+
+Gold mine! Microdata!
+http://www.cdc.gov/brfss/technical_infodata/surveydata/2008.htm#sas
