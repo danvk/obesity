@@ -7,4 +7,4 @@ library('RJSONIO');
 print(' [*] Reading data...')
 d <- read.xport(file=args[1])
 
-cat(toJSON(unname(apply(d, 1, function(x) as.data.frame(t(x))))))
+cat(toJSON(unname(apply(d, 1, function(x) as.data.frame(t(x))))), file=args[2])

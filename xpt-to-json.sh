@@ -10,4 +10,6 @@ set -x
 test ! -z $1
 
 ./extract-zip.sh data/xpt/$1.xpt.zip  # creates data.xpt
-R -f xpt_to_json.R --args data.xpt | gzip -c > data/json/$1.json.gz
+R -f xpt_to_json.R --args data.xpt tmp.json 
+gzip tmp.json > data/json/$1.json.gz
+rm tmp.json
