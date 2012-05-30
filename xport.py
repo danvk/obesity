@@ -1,5 +1,6 @@
 from datetime import datetime
 import struct
+import sys
 
 def parse_date(datestr):
     """ Given a date in xport format, return Python date. """
@@ -20,6 +21,21 @@ def _split_line(s, parts):
         start += length
     del out['_']
     return out
+
+
+# From: http://stackoverflow.com/questions/7125890/python-unpack-ibm-32-bit-float-point
+def ibm2ieee(ibm):
+    """
+    Converts an IBM floating point number into IEEE format.
+    :param: ibm - 32 bit unsigned integer: unpack('>L', f.read(4))
+    """
+
+    sign = ibm >> 31 & 0x01
+    exponent = ibm >> 24 & 0x7f
+    mantissa = ibm & 0x00ffffff
+    mantissa = (mantissa * 1.0) / pow(2, 24)
+    ieee = (1 - 2 * sign) * mantissa * pow(16, exponent - 64)
+    return ieee
 
 
 def parse_float(bitstring):
@@ -77,8 +93,18 @@ def parse_float(bitstring):
            (xport1 & 0x80000000);
     """
 
+    #if len(bitstring) == 4:
+    #  return ibm2ieee(struct.unpack('>L', bitstring)[0]) 
+
+    #if len(bitstring) == 5 and bitstring[-1] == '\0':
+    #  return parse_float(bitstring[0:-1])
+
+    if len(bitstring) < 8:
+      return parse_float(bitstring + ('\0' * (8 - len(bitstring))))
+
     if len(bitstring) != 8:
       # Hopefully a weird enough value that you'll notice!
+      sys.stderr.write('len(float) = %d\n' % len(bitstring))
       return -123456789
 
     xport1, xport2 = struct.unpack('>II', bitstring)
@@ -125,6 +151,36 @@ def parse_float(bitstring):
     ieee2 &= 0xffffffff
 
     return struct.unpack(">d", struct.pack(">II", ieee1, ieee2))[0]
+
+
+def missing_value(v):
+    """Checks if a floating point byte string represents a missing value."""
+    # From the specification:
+    #
+    # MISSING VALUES 
+    # 
+    # Missing values are written out with the first byte (the exponent) indicating
+    # the proper missing values. All subsequent bytes are 0x00. The first byte is:
+    # 
+    #      type      byte 
+    #       ._       0x5f
+    #       .        0x2e
+    #       .A       0x41
+    #       .B       0x42
+    #          ....
+    #       .Z       0x5a
+    #
+    # ---
+    # My interpretation of this is that 0x2e is the "normal" missing value,
+    # whereas the other bytes represent other, special types of "missing".
+    b = ord(v[0])
+    if b == 0x2e or b == 0x5f or (b >= 0x41 and b <= 0x5a):
+        if v[1:] == ('\0' * (len(v) - 1)):
+            return b
+
+    return None
+    
+
 
 class XportReader(object):
 
@@ -232,8 +288,8 @@ class XportReader(object):
             field = dict(zip(['ntype','nhfun','field_length','nvar0','name','label','nform','nfl','num_decimals','nfj','nfill','niform','nifl','nifd','npos','_'],fieldstruct))
             del field['_']
             field['ntype'] = types[field['ntype']]
-            # if field['ntype']=='numeric' and field['field_length'] != 8:
-            #     raise TypeError("Oops -- only 8-byte floats are currently implemented. Can't read field %s (%d bytes)." % (field, field['field_length']))
+            #if field['ntype']=='numeric' and (field['field_length'] != 8 and field['field_length'] != 4):
+            #     raise TypeError("Oops -- only 4- and 8-byte floats are currently implemented. Can't read field %s (%d bytes)." % (field, field['field_length']))
             for k, v in field.items():
                 try:
                     field[k] = v.strip()
@@ -272,9 +328,13 @@ class XportReader(object):
             if field['ntype'] == 'char':
                 field_val = unicode(field_str.strip(), self.encoding)
             else:
-                field_val = parse_float(field_str)
-                if field['num_decimals'] == 0:
-                    field_val = int(field_val)
+                m = missing_value(field_str)
+                if m:
+                    field_val = None
+                else:
+                    field_val = parse_float(field_str)
+                # if field['num_decimals'] == 0:
+                #     field_val = int(field_val)
             obs[field['name']] = field_val
         return obs
 
