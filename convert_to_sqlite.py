@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# create table brfss (year integer, weight_lbs integer, height_in integer, record_weight float);
+# create table brfss (year integer, weight_lbs integer, height_ins integer, record_weight float);
 
 import gzip
 import json
