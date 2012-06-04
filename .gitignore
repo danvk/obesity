@@ -5,3 +5,5 @@ data
 *.XPT
 *.pyc
 .DS_Store
+*.db
+*.db-journal

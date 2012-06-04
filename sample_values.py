@@ -21,7 +21,7 @@ if len(args) != 2:
   parser.print_usage()
   sys.exit(1)
 
-year, field = int(args[0]), args[1]
+field, year = args[0], int(args[1])
 
 z = gzip.GzipFile(filename='data/json/%s.json.gz' % year)
 
