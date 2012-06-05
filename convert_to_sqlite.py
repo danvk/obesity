@@ -1,11 +1,11 @@
 #!/usr/bin/python
 #
-# create table brfss (year integer, weight_lbs integer, height_ins integer, record_weight float);
 
 import gzip
 import json
 import sys
 import sqlite3
+import convert
 
 assert len(sys.argv) == 2, (
   'Usage: %s year' % sys.argv[0])
@@ -16,6 +16,7 @@ conn = sqlite3.connect('brfss.db')
 c = conn.cursor()
 z = gzip.GzipFile(filename='data/json/%s.json.gz' % year)
 
+table_schema = """create table brfss (year integer, weight_lbs integer, height_ins integer, record_weight float, state string);"""
 
 def ExtractWeight(d):
   global year
@@ -64,17 +65,20 @@ def ExtractHeight(d):
   if f > 8: return None  # miscode
   return 12 * f + i
 
-
+def ExtractState(d):
+  return convert.fips_to_state[d['_STATE']]
 
 for idx, line in enumerate(z):
   d = json.loads(line)
 
   weight_lbs = ExtractWeight(d)
   height_ins = ExtractHeight(d)
+  state_name = ExtractState(d)
   record_weight = d['_FINALWT']
 
-  c.execute("""insert into brfss values (?, ?, ?, ?)""",
-              (year, weight_lbs, height_ins, record_weight))
+  c.execute(table_schema)
+  c.execute("""insert into brfss values (?, ?, ?, ?, ?)""",
+              (year, weight_lbs, height_ins, record_weight, state_name))
   conn.commit()
 
   if idx % 1000 == 0:
