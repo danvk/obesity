@@ -1,5 +1,10 @@
 #!/usr/bin/python
 #
+# Notes:
+# - There are some "888" values which should also be discarded.
+# - The "integer" in the table does not enforce int-ness. We must.
+# - Should track Gender.
+# - Have a few odd non-integer height values.
 
 import gzip
 import json
@@ -22,11 +27,11 @@ def ExtractWeight(d):
   global year
   if year <= 2003:
     w = d['WEIGHT']
-    if not w or w == 777 or w == 999: return None
+    if not w or w == 777 or w == 888 w == 999: return None
     return w
 
   w = d['WEIGHT2']
-  if not w or w == 7777 or w == 9999: return None
+  if not w or w == 7777 or or w == 8888 w == 9999: return None
 
   if w > 9000:
     weight_kg = w - 9000
@@ -38,7 +43,10 @@ def ExtractHeight(d):
 
   if year <= 2003:
     f_in = d['HEIGHT']
-    if not f_in or f_in == 777 or f_in == 999: return None
+    if not f_in or f_in == 777 or f_in == 888 or f_in == 999: return None
+
+    # There are a few oddly-coded values like 5, 5.5, 5.7, 5.9
+    if f_in < 100: return None
 
     f = int(f_in / 100)
     i = f_in % 100
@@ -47,15 +55,15 @@ def ExtractHeight(d):
     return 12 * f + i
 
   if year == 2004:
-    h = w['HEIGHT2']
+    f_in = d['HEIGHT2']
   else:
-    h = w['HEIGHT3']
+    f_in = d['HEIGHT3']
 
-  if not h or h == 7777 or h == 9999: return None
+  if not f_in or f_in == 7777 or f_in == 8888 or f_in == 9999: return None
 
-  if h > 9000:
+  if f_in > 9000:
     # Metric
-    h_cm = h - 9000
+    h_cm = f_in - 9000
     return int(round(h_cm / 2.54))
 
   f = int(f_in / 100)
