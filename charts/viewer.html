@@ -1,0 +1,123 @@
+<html>
+<head>
+<script src="http://dygraphs.com/dygraph-combined.js"></script>
+<script src="weight.js"></script>
+<script src="height.js"></script>
+<script src="bmi.js"></script>
+</head>
+
+<style>
+html, body {
+  width: 100%;
+  height: 100%;
+}
+#header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 10px;
+  height: 30px;
+  width: 100%;
+  background: lightgray;
+  border-bottom: 1px solid black;
+  z-index: 100;
+}
+#content {
+  margin-top: 60px;
+}
+#year_slider {
+  width: 400px;
+}
+.chart {
+  width: 800px;
+  height: 400px;
+  margin-bottom: 50px;
+}
+</style>
+
+<body>
+  <div id=header>
+    <span id=year>1984</span>
+    <input id=year_slider type=range min=1984 max=2010 value=1984 />
+  </div>
+
+  <div id=content>
+    <div class=chart id=height></div>
+    <div class=chart id=weight></div>
+    <div class=chart id=bmi></div>
+  </div>
+
+  <script type="text/javascript">
+    // Converts something like bmi_csv into a year -> Nx2 array mapping.
+    function csv_to_data(csv) {
+      var lines = csv.split('\n');
+
+      var header = lines[0].split(',');
+      header.shift();  // Remove the "year" label.
+      for (var i = 0; i < header.length; i++) {
+        header[i] = header[i] ? parseInt(header[i]) : 0.0;
+      }
+
+      var ret = {};
+      for (var i = 1; i < lines.length; i++) {
+        var vals = lines[i].split(',');
+        var d = [];
+        for (var j = 0; j < header.length; j++) {
+          var v = vals[j + 1];
+          d.push([header[j], v ? 100.0 * parseFloat(v) : 0.0]);
+        }
+
+        ret[parseInt(vals[0])] = d;
+      }
+      return ret;
+    }
+
+    var heights = csv_to_data(heights_csv);
+    var g_height = new Dygraph(
+        document.getElementById('height'),
+        heights[1984],
+        {
+          labels: ['Height (in)', 'Percent'],
+          title: 'Distribution of Height (inches)',
+          ylabel: 'Percentage',
+          gridLineWidth: 0.1,
+          fillGraph: true,
+          dateWindow: [50, 90]
+        });
+
+    var weights = csv_to_data(weights_csv);
+    var g_weight = new Dygraph(
+        document.getElementById('weight'),
+        weights[1984],
+        {
+          labels: ['Weight (lbs)', 'Percent'],
+          title: 'Distribution of Weight (pounds)',
+          ylabel: 'Percentage',
+          gridLineWidth: 0.1,
+          fillGraph: true,
+          dateWindow: [50, 350]
+        });
+
+    var bmis = csv_to_data(bmi_csv);
+    var g_bmi = new Dygraph(
+        document.getElementById('bmi'),
+        bmis[1984],
+        {
+          labels: ['BMI (kg/m^2)', 'Percent'],
+          title: 'Distribution of BMIs (kg/m^2)',
+          ylabel: 'Percentage',
+          gridLineWidth: 0.1,
+          fillGraph: true,
+          dateWindow: [10, 60]
+        });
+
+    document.getElementById('year_slider').onchange = function(e) {
+      var year = document.getElementById('year_slider').value;
+      g_height.updateOptions({file: heights[year]});
+      g_weight.updateOptions({file: weights[year]});
+      g_bmi.updateOptions({file: bmis[year]});
+      document.getElementById('year').innerHTML = year;
+    }
+  </script>
+</body>
+</html>
