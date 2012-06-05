@@ -65,8 +65,17 @@ def ExtractHeight(d):
   if f > 8: return None  # miscode
   return 12 * f + i
 
+
 def ExtractState(d):
   return convert.fips_to_state[d['_STATE']]
+
+
+try:
+  c.execute(table_schema)
+  conn.commit()
+except sqlite3.OperationalError as e:
+  # table already exists
+  pass
 
 for idx, line in enumerate(z):
   d = json.loads(line)
@@ -76,7 +85,6 @@ for idx, line in enumerate(z):
   state_name = ExtractState(d)
   record_weight = d['_FINALWT']
 
-  c.execute(table_schema)
   c.execute("""insert into brfss values (?, ?, ?, ?, ?)""",
               (year, weight_lbs, height_ins, record_weight, state_name))
   conn.commit()
