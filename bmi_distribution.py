@@ -58,10 +58,6 @@ for idx, row in enumerate(result):
   bmis[year][bmi] += record_weight
 
 
-print heights[2006]
-print tossed
-sys.exit(0)
-
 def Normalize(d):
   """Normalizes a two-level dict so that sum(d[k].values()) == 1 for all k."""
   for k1, d2 in d.iteritems():

@@ -27,15 +27,18 @@ def ExtractWeight(d):
   global year
   if year <= 2003:
     w = d['WEIGHT']
-    if not w or w == 777 or w == 888 w == 999: return None
+    if not w or w == 777 or w == 888 or w == 999: return None
     return w
 
   w = d['WEIGHT2']
-  if not w or w == 7777 or or w == 8888 w == 9999: return None
+  if not w or w == 7777 or w == 8888 or w == 9999: return None
 
   if w > 9000:
+    # metric
     weight_kg = w - 9000
     return int(round(2.20462262 * weight_kg))
+
+  return w
 
 
 def ExtractHeight(d):
@@ -78,6 +81,15 @@ def ExtractState(d):
   return convert.fips_to_state[d['_STATE']]
 
 
+def ExtractIsMale(d):
+  # 1 = Male, 2 = Female
+  if d['SEX'] == 1:
+    return True
+  elif d['SEX'] == 2:
+    return False
+  return None
+
+
 try:
   c.execute(table_schema)
   conn.commit()
@@ -91,10 +103,11 @@ for idx, line in enumerate(z):
   weight_lbs = ExtractWeight(d)
   height_ins = ExtractHeight(d)
   state_name = ExtractState(d)
+  is_male = ExtractIsMale(d)
   record_weight = d['_FINALWT']
 
-  c.execute("""insert into brfss values (?, ?, ?, ?, ?)""",
-              (year, weight_lbs, height_ins, record_weight, state_name))
+  c.execute("""insert into brfss values (?, ?, ?, ?, ?, ?)""",
+              (year, weight_lbs, height_ins, record_weight, state_name, is_male))
   conn.commit()
 
   if idx % 1000 == 0:
