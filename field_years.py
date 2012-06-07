@@ -36,15 +36,23 @@ def main():
     all_years = sorted(years.keys())
     states = [k if years[k] else None for k in all_years]
 
-    print 'Present:'
     runs = itertools.groupby(states, lambda x: not not x)
+    present_runs = []
     for present, years in runs:
       if not present: continue
 
       years = list(years)
       first = years[0]
       last = years[-1]
-      print '%d-%d' % (first, last)
+      if first == last:
+        present_runs.append(str(first))
+      else:
+        present_runs.append('%d-%d' % (first, last))
+
+    if present_runs:
+      print 'Present: %s' % (', '.join(present_runs))
+    else:
+      print 'Not present in any year.'
 
 
 if __name__ == "__main__":
