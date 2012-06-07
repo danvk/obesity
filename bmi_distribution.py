@@ -29,6 +29,9 @@ weights = defaultdict(lambda: defaultdict(float))
 # year -> floor(bmi) -> sum of record_weights
 bmis = defaultdict(lambda: defaultdict(float))
 
+# year -> # of records tossed
+tossed = defaultdict(int)
+
 # Get the total weighting for each year.
 result = c.execute("""select year, record_weight, weight_lbs, height_ins from brfss""")
 for idx, row in enumerate(result):
@@ -38,11 +41,14 @@ for idx, row in enumerate(result):
   year, record_weight, weight_lbs, height_ins = row
 
   # Ignore "don't know" and "refused to say" and miscodes.
-  if not weight_lbs or not height_ins: continue
+  if not weight_lbs or not height_ins:
+    tossed[year] += 1
+    continue
 
   # Bugs:
   if height_ins < 10: continue
 
+  assert record_weight > 0
   year_weights[year] += record_weight
   heights[year][height_ins] += record_weight
   weights[year][weight_lbs] += record_weight
@@ -51,6 +57,10 @@ for idx, row in enumerate(result):
 
   bmis[year][bmi] += record_weight
 
+
+print heights[2006]
+print tossed
+sys.exit(0)
 
 def Normalize(d):
   """Normalizes a two-level dict so that sum(d[k].values()) == 1 for all k."""
