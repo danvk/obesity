@@ -18,24 +18,37 @@ assert len(sys.argv) == 2, (
 year = int(sys.argv[1])
 
 conn = sqlite3.connect('brfss.db')
-c = conn.cursor()
+# c = conn.cursor()
 z = gzip.GzipFile(filename='data/json/%s.json.gz' % year)
 
-table_schema = """create table brfss (year integer, weight_lbs integer, height_ins integer, record_weight float, state string);"""
+table_schema = """
+create table brfss (
+  year integer,
+  weight_lbs integer,
+  height_ins integer,
+  record_weight float,
+  state string,
+  is_male boolean,
+  age_years integer
+);
+"""
 
 def ExtractWeight(d):
   global year
   if year <= 2003:
     w = d['WEIGHT']
-    if not w or w == 777 or w == 888 w == 999: return None
+    if not w or w == 777 or w == 888 or w == 999: return None
     return w
 
   w = d['WEIGHT2']
-  if not w or w == 7777 or or w == 8888 w == 9999: return None
+  if not w or w == 7777 or w == 8888 or w == 9999: return None
 
   if w > 9000:
+    # metric
     weight_kg = w - 9000
     return int(round(2.20462262 * weight_kg))
+
+  return w
 
 
 def ExtractHeight(d):
@@ -78,26 +91,64 @@ def ExtractState(d):
   return convert.fips_to_state[d['_STATE']]
 
 
+def ExtractIsMale(d):
+  # 1 = Male, 2 = Female
+  assert 'SEX' in d
+  if d['SEX'] == 1:
+    return True
+  elif d['SEX'] == 2:
+    return False
+  return None
+
+
+def ExtractAgeYears(d):
+  # 18-99 = Age on last birthday
+  # 07 = Don't Know/Not Sure
+  # 09 = Refused
+  assert 'AGE' in d
+  age = d['AGE']
+  if age == None: return None
+  assert age == int(age)
+
+  if age == 7 or age == 9: return None
+  assert 18 <= age <= 99
+  return age
+
+
+def InsertABunch(conn, tuples):
+  return conn.executemany("""insert into brfss values (?, ?, ?, ?, ?, ?, ?)""", tuples)
+
+
 try:
-  c.execute(table_schema)
-  conn.commit()
+  conn.execute(table_schema)
 except sqlite3.OperationalError as e:
   # table already exists
   pass
 
+
+tuples = []
 for idx, line in enumerate(z):
   d = json.loads(line)
 
   weight_lbs = ExtractWeight(d)
   height_ins = ExtractHeight(d)
   state_name = ExtractState(d)
+  is_male = ExtractIsMale(d)
+  age_years = ExtractAgeYears(d)
   record_weight = d['_FINALWT']
 
-  c.execute("""insert into brfss values (?, ?, ?, ?, ?)""",
-              (year, weight_lbs, height_ins, record_weight, state_name))
-  conn.commit()
+  # batch insertions into 1000 row chunks. This is about a 6x speedup.
+  tuples.append((year, weight_lbs, height_ins, record_weight, state_name, is_male, age_years))
+  if len(tuples) == 1000:
+    cursor = InsertABunch(conn, tuples)
+    assert cursor.rowcount == 1000
+    conn.commit()
+    tuples = []
+    if idx % 10000 == 9999:
+      print '%d...' % (1 + idx)
 
-  if idx % 1000 == 0:
-    print '%d...' % idx
+if tuples:
+  InsertABunch(conn, tuples)
 
+conn.commit()
 conn.close()

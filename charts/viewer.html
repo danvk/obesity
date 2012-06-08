@@ -24,6 +24,7 @@ html, body {
 }
 #content {
   margin-top: 60px;
+  padding-bottom: 30px;
 }
 #year_slider {
   width: 400px;
@@ -82,7 +83,8 @@ html, body {
           ylabel: 'Percentage',
           gridLineWidth: 0.1,
           fillGraph: true,
-          dateWindow: [50, 90]
+          dateWindow: [50, 90],
+          valueRange: [0, 10]
         });
 
     var weights = csv_to_data(weights_csv);
@@ -91,11 +93,12 @@ html, body {
         weights[1984],
         {
           labels: ['Weight (lbs)', 'Percent'],
-          title: 'Distribution of Weight (pounds)',
+          title: 'Distribution of Weight (pounds, rounded to nearest 5lbs)',
           ylabel: 'Percentage',
           gridLineWidth: 0.1,
           fillGraph: true,
-          dateWindow: [50, 350]
+          dateWindow: [50, 350],
+          valueRange: [0, 8]
         });
 
     var bmis = csv_to_data(bmi_csv);
@@ -108,7 +111,8 @@ html, body {
           ylabel: 'Percentage',
           gridLineWidth: 0.1,
           fillGraph: true,
-          dateWindow: [10, 60]
+          dateWindow: [10, 60],
+          valueRange: [0, 13]
         });
 
     document.getElementById('year_slider').onchange = function(e) {
