@@ -61,7 +61,7 @@ def main():
         male_mean = ExtractMean(bmis[0])
         male_deciles = ExtractDeciles(bmis[0])[1:-1]
         female_mean = ExtractMean(bmis[1])
-        female_deciles = ExtractDeciles(bmis[0])[1:-1]
+        female_deciles = ExtractDeciles(bmis[1])[1:-1]
 
         both_bmis = bmis[0] + bmis[1]
         both_mean = ExtractMean(both_bmis)

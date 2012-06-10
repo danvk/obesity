@@ -1,4 +1,4 @@
-'''Takes deciles.tab and draws quantiles'''
+'''Takes deciles.tab and draws deciles'''
 
 import numpy as np
 import matplotlib as ma
@@ -21,12 +21,10 @@ def main():
         plt.clf()
         plt.plot(years, data[kind + '-Mean'], c='red')
         for k in data:
-            if 'pctile' in k:
-                pct = int(k.split('-')[1].split('th')[0])
-                if pct%20==0:
-                    plt.plot(years, data[k], c='grey')
+            if 'pctile' in k and kind in k:
+                plt.plot(years, data[k], c='grey')
         plt.xlim((years[0],years[-1]))
-        plt.savefig('quantiles-%s.png'%kind)
+        plt.savefig('deciles-%s.png'%kind)
 
 if __name__ == "__main__":
     main()
