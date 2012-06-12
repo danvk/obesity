@@ -67,8 +67,6 @@ def main():
         both_mean = ExtractMean(both_bmis)
         both_deciles = ExtractDeciles(both_bmis)[1:-1]
 
-        
-        
         print '\t'.join([str(x) for x in
           [year,
            both_mean] + both_deciles + \
